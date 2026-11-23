@@ -1,0 +1,32 @@
+<section class="article-grid">
+<div><h2>What the window tells us</h2>
+<p>Two simulated photons arrive in the first two seconds with reconstructed energies between 1.66 and 1.84 MeV. The expected background is one count. If the merger emitted 1.2 × 10<sup>52</sup> escaping photons, which model lines would have produced too many counts here?</p>
+<p>At √σ = 1.0 MeV, the SU(3) benchmark predicts 8.05 signal counts, in addition to background. The chance of counting two photons or fewer is 1.11%. Raising √σ to 1.1 MeV moves its mean line energy from 1.686 to 1.854 MeV. The same yield then gives a lower-tail probability of 31.55%.</p></div>
+<aside class="notes"><h3>Evidence</h3><p>The merger, host spectrum, detector, and photon counts are synthetic. The three scalar mass ratios come from published continuum lattice calculations.</p><p><a href="https://doi.org/10.1007/JHEP12(2021)082">Athenodorou &amp; Teper, Table 34 ↗</a></p></aside>
+</section>
+<section class="article-grid">
+<div>$figure</div>
+<aside class="notes"><h3>Reading the figure</h3><p>Each mark locates a predicted mean energy. The test folds in detector resolution, source uncertainty, and lattice mass uncertainty. A line centered outside the window can still contribute counts inside it.</p></aside>
+</section>
+<section class="table-section" aria-labelledby="benchmarks"><h2 id="benchmarks">All nine benchmarks</h2>
+<p>The decision uses the probability of observing at most two counts. Each parameter point with <i>p</i> ≤ 0.05 is excluded under the stated emission model.</p>
+$table
+<div class="resources"><a href="results.csv" download>Download full-precision CSV ↓</a></div>
+</section>
+<section class="article-grid">
+<div><h2>Why the group remains ambiguous</h2>
+<p>For a scalar glueball at rest that decays into two photons, the observed line energy depends on a product. Write <i>r</i><sub>N</sub> for the lattice scalar mass in units of the square root of the string tension. At host redshift <i>z</i>,</p>
+<p class="formula" aria-label="Photon energy equals r sub N times the square root of sigma divided by twice one plus redshift">E<sub>γ</sub> = <span style="white-space:nowrap">r<sub>N</sub> √σ</span> / [2(1 + z)].</p>
+<p>A change in √σ can compensate for a change in gauge group. SU(2) at 0.9 MeV and SU(3) at 1.0 MeV place their lines only about 1 keV apart. The instrument’s assumed resolution is 25 keV. Distinguishing groups would require additional information, such as a second identified line whose energy ratio cancels the common scale.</p></div>
+<aside class="notes"><h3>Model assumptions</h3><p>The benchmark assumes prompt, isotropic emission through a two-photon decay channel. The escaping photon yield is a free parameter. These conditional exclusions establish no observational constraint on a gauge group or on the Yang–Mills mass gap.</p></aside>
+</section>
+<section class="article-grid">
+<div><h2>Reproduce the calculation</h2>
+<p>The analysis reweights the gravitational-wave distance and redshift samples using the host line centroid. It then averages the Poisson lower tail over that distribution and the lattice uncertainty. Increasing the quadrature order from 48 to 96 preserves all nine decisions.</p>
+<pre><code>cd studies/multimessenger-yang-mills
+python3 -m pip install -r requirements.txt
+python3 analyze.py example/event.json
+python3 -m unittest -v</code></pre>
+<div class="resources"><a href="$source">Study code &amp; methods ↗</a><a href="event.json">Event manifest</a><a href="lattice.csv" download>Lattice inputs ↓</a></div></div>
+<aside class="notes"><h3>Conditional yield limit</h3><p>At √σ = 1.0 MeV, the SU(3) point reaches the 5% threshold at 8.42 × 10<sup>51</sup> escaping photons. The CSV includes the yield limit, or its scan status, for each point.</p></aside>
+</section>

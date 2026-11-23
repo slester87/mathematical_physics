@@ -1,0 +1,9 @@
+title = "Can a photon line distinguish gauge groups?"
+kind = "Synthetic event study"
+date = 2026-11-22
+summary = "Three of nine dark-glueball benchmarks predict too many photons in one energy window. Each gauge group also has a benchmark compatible with the same synthetic event."
+
+[downloads]
+"results.csv" = "example/results.csv"
+"event.json" = "example/event.json"
+"lattice.csv" = "lattice.csv"
