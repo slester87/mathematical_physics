@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 
 from analyze import (HERE, YIELD_UNIT, analyze, count_photons, limits, poisson_lower,
-                     response, source_distribution, window_probability)
+                     read_window_area, response, source_distribution, window_probability)
 
 
 class EventTest(unittest.TestCase):
@@ -72,6 +72,20 @@ class EventTest(unittest.TestCase):
                          (None, "retained_point", "above_scan_max"))
         self.assertEqual(limits(0, 10., rate, w, 1., 100., .05)[2], "background_tension")
         self.assertAlmostEqual(window_probability(0., -1., 1., 1.), 0.6826894921370859)
+
+    def test_tabulated_response(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "area.csv"
+            path.write_text("true_energy_MeV,window_low_MeV,window_high_MeV,area_cm2\n"
+                            "1.0,1.66,1.84,0.0\n2.0,1.66,1.84,100.0\n")
+            tab = read_window_area(path, (1.66, 1.84))
+            source = (np.array([40.]), np.zeros(1), np.ones(1))
+            # m = 3 MeV puts the line at 1.5 MeV; the interpolated area is 50 cm^2.
+            rate, _, _ = response(source, self.sensor, 3., 0., 1., 8, tab)
+            expected = YIELD_UNIT * 50. / (4. * math.pi * (40. * 3.0856775814913673e24)**2)
+            np.testing.assert_allclose(rate, expected)
+            with self.assertRaisesRegex(ValueError, "different count window"):
+                read_window_area(path, (1.0, 1.5))
 
     def test_source_update(self):
         path = self.path.parent / self.event["gw"]["samples"]

@@ -92,23 +92,41 @@ def window_probability(mean, low, high, width):
     return 0.5 * (math.erfc(-hi) - math.erfc(-lo))
 
 
-def response(source, sensor, ratio, error, scale, order):
+def read_window_area(path, window):
+    """Area after redistribution into the declared measured-energy window."""
+    true_energy, area = [], []
+    cols = ("true_energy_MeV", "window_low_MeV", "window_high_MeV", "area_cm2")
+    for row in records(path, cols):
+        if interval([row["window_low_MeV"], row["window_high_MeV"]]) != window:
+            raise ValueError("tabulated area belongs to a different count window")
+        true_energy.append(number(row["true_energy_MeV"], positive=True))
+        area.append(number(row["area_cm2"], nonnegative=True))
+    if len(area) < 2 or np.any(np.diff(true_energy) <= 0):
+        raise ValueError("tabulated response needs increasing true energies")
+    return true_energy, area
+
+
+def response(source, sensor, ratio, error, scale, order, area_table=None):
     distance, z, sw = source
     nodes, mw = hermgauss(order)
     masses = scale * (ratio + math.sqrt(2) * error * nodes)
     if np.any(masses <= 0):
         raise ValueError("mass quadrature crosses zero; supply a positive mass model")
     energy = masses[None, :] / (2 * (1 + z[:, None]))
-    emin, emax = interval(sensor["true_band_MeV"])
-    low, high = interval(sensor["count_window_MeV"])
-    width = number(sensor["resolution_sigma_MeV"], positive=True)
-    area = number(sensor["effective_area_cm2"], nonnegative=True)
-    efficiency = np.array([window_probability(e, low, high, width) if emin <= e < emax else 0.0
-                           for e in energy.flat]).reshape(energy.shape)
+    if area_table is None:
+        emin, emax = interval(sensor["true_band_MeV"])
+        low, high = interval(sensor["count_window_MeV"])
+        width = number(sensor["resolution_sigma_MeV"], positive=True)
+        area = number(sensor["effective_area_cm2"], nonnegative=True)
+        in_window = [window_probability(e, low, high, width) if emin <= e < emax else 0.0
+                     for e in energy.flat]
+        window_area = area * np.array(in_window).reshape(energy.shape)
+    else:
+        window_area = np.interp(energy, *area_table, left=0.0, right=0.0)
     # Integrated photon NUMBER fluence uses transverse comoving distance D_L/(1+z).
-    counts_per_unit = YIELD_UNIT * area / (4 * math.pi * (MPC_CM * distance / (1 + z))**2)
+    fluence = YIELD_UNIT / (4 * math.pi * (MPC_CM * distance / (1 + z))**2)
     weights = sw[:, None] * mw[None, :] / math.sqrt(math.pi)
-    return (counts_per_unit[:, None] * efficiency).ravel(), weights.ravel(), float(np.sum(weights * energy))
+    return (fluence[:, None] * window_area).ravel(), weights.ravel(), float(np.sum(weights * energy))
 
 
 def poisson_lower(n, mean):
@@ -159,6 +177,10 @@ def analyze(event_path, lattice_path, order=48):
     sensor, scan = event["sensor"], event["scan"]
     source = source_distribution(event_path.parent / event["gw"]["samples"], event["host"], event["event_id"])
     count = count_photons(event_path.parent / sensor["photons"], sensor, event["event_id"])
+    area_table = None
+    if "window_area_csv" in sensor:
+        area_table = read_window_area(event_path.parent / sensor["window_area_csv"],
+                                      interval(sensor["count_window_MeV"]))
     b = number(sensor["mean_background_counts"], nonnegative=True)
     y = number(scan["photons_emitted"], nonnegative=True)
     max_y = number(scan["max_photons"], positive=True)
@@ -172,7 +194,7 @@ def analyze(event_path, lattice_path, order=48):
         err = number(lattice["standard_error"], nonnegative=True)
         for value in scan["sqrt_string_tension_MeV"]:
             scale = number(value, positive=True)
-            rates, weights, energy = response(source, sensor, ratio, err, scale, order)
+            rates, weights, energy = response(source, sensor, ratio, err, scale, order, area_table)
             p, upper, status, limit_status = limits(count, b, rates, weights, y / YIELD_UNIT, max_y / YIELD_UNIT, alpha)
             yield dict(event_id=event["event_id"], data_kind=event["data_kind"],
                        group=lattice["gauge_group"], sqrt_sigma_MeV=scale,
