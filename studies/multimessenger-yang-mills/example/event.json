@@ -1,0 +1,34 @@
+{
+  "event_id": "SIM-MERGER-001",
+  "data_kind": "synthetic",
+  "association": "Same source and correct host by construction. Distance samples use GW information only.",
+  "gw": {
+    "product": "example distance and redshift quadrature points for a LIGO-like merger",
+    "samples": "gw_samples.csv",
+    "time_origin": "synthetic geocentric merger time; sensor times are already relative to this epoch"
+  },
+  "host": {
+    "product": "example JWST/NIRSpec host line centroid, wavelengths in vacuum",
+    "line": "H-alpha",
+    "rest_um": 0.65646,
+    "centroid_um": 0.6630246,
+    "sigma_um": 0.0004
+  },
+  "sensor": {
+    "product": "idealized gamma-ray spectrometer S, constant effective area in its true-energy band",
+    "photons": "photons.csv",
+    "time_s": [0.0, 2.0],
+    "continuous_live_interval_s": [-1.0, 3.0],
+    "count_window_MeV": [1.66, 1.84],
+    "true_band_MeV": [1.0, 2.5],
+    "resolution_sigma_MeV": 0.025,
+    "effective_area_cm2": 150.0,
+    "mean_background_counts": 1.0
+  },
+  "scan": {
+    "sqrt_string_tension_MeV": [0.9, 1.0, 1.1],
+    "photons_emitted": 1.2e52,
+    "max_photons": 1e54,
+    "alpha": 0.05
+  }
+}
