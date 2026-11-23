@@ -1,5 +1,4 @@
 """GWOSC to pygwb one-sided CSD to an illustrative tensor Omega spectrum."""
-import argparse
 import json
 
 from bilby.gw.detector import get_empty_interferometer
@@ -8,7 +7,7 @@ import h5py
 import numpy as np
 from pygwb.orfs import calc_orf
 from pygwb.spectral import cross_spectral_density
-from scipy.signal import butter, sosfiltfilt
+from scipy.signal import butter, csd as welch_csd, sosfiltfilt
 
 from inputs import ROOT, STRAIN, fetch
 
@@ -45,6 +44,11 @@ def main():
     f = csd.frequencies.value
     use = (f >= 30) & (f <= 200)
     f, cross = f[use], np.real(csd.value[:, use])
+    ref_f, ref_cross = welch_csd(h.value, l.value, fs=FS, window="hann", nperseg=FS, noverlap=0)
+    target = ref_cross.real[np.searchsorted(ref_f, f)]
+    difference = np.linalg.norm(cross.mean(axis=0)-target)/np.linalg.norm(target)
+    if difference > .005:
+        raise ValueError(f"Independent one-sided Welch CSD mismatch: {difference:.3g}")
     h1, l1 = [get_empty_interferometer(ifo) for ifo in STRAIN]
     gamma = calc_orf(f, h1.vertex, l1.vertex, h1.x, l1.x, h1.y, l1.y, polarization="tensor")
     keep = abs(gamma) > 0.1
@@ -57,7 +61,7 @@ def main():
                delimiter=",", header="frequency_Hz,Omega,empirical_standard_error", comments="")
     result = {"source": "GWOSC GW150914 LOSC 4 kHz V2, H1 x L1", "start_gps": START + 1,
               "end_gps_exclusive": START + 13, "nonoverlapping_segments": len(est),
-              "bins": int(keep.sum()), "first_Hz": float(f[keep][0]), "last_Hz": float(f[keep][-1]),
+              "welch_relative_L2_difference": float(difference), "bins": int(keep.sum()), "first_Hz": float(f[keep][0]), "last_Hz": float(f[keep][-1]),
               "median_bin_standard_error": float(np.median(errors))}
     (out / "strain.json").write_text(json.dumps(result, indent=2) + "\n")
     print(result)

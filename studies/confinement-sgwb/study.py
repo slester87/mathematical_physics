@@ -170,25 +170,32 @@ def evaluate():
         for key in therm:
             active &= np.isfinite(grid[key]) & (grid[key] > 0)
         active &= (grid["vwLTE"] <= 1) & (grid["kappaLTE"] <= 1)
-        keep = active & (grid["Message"] == 1)
+        keep = active & (grid["Message"] >= .90) & (grid["Message"] <= 1)
         rows = grid[keep]
-        counts[str(n)] = dict(total=len(grid),positive_LTE=int(active.sum()),retained=len(rows))
+        counts[str(n)] = dict(total=len(grid),positive_LTE=int(active.sum()),retained=len(rows),fully_perturbative=int(np.sum(keep & (grid["Message"] == 1))))
         points = [measure(n,3,[row[k] for k in therm]) for row in rows]
         ll = np.array([p["logL_with_CBC_vs_CBC"] for p in points])
         peaks = np.array([p["peak_h2Omega"] for p in points])
-        for row, p in zip(rows, points):
-            outputs.append({"N":n, **{k:float(row[k]) for k in AXES}, **p})
+        for row, point in zip(rows, points):
+            point.update({"N":n, **{k:float(row[k]) for k in (*AXES, *therm, "Message")}})
+        outputs.extend(points)
         for kind in ("linear","log"):
             weights = prior_weights(rows, axes, kind)
             for support, mask in [("full", np.ones(len(rows), dtype=bool)),
                                   ("lower_eta", rows["m2Eta"] <= axes["m2Eta"][2])]:
                 p = weights[mask] / np.sum(weights[mask])
                 centered = ll[mask] - np.max(ll[mask])
-                post = p*np.exp(centered)
-                post /= post.sum()
+                change = np.expm1(centered)
+                mean_change = np.sum(p*change)
+                relative_update = (change-mean_change)/(1+mean_change)
+                post = p*(1+relative_update)
+                if support == "full":
+                    for point, weight, updated in zip(points, p, post):
+                        point[kind+"_prior_mass"] = float(weight)
+                        point[kind+"_posterior_mass"] = float(updated)
                 summaries.append(dict(N=n,prior=kind,support=support,points=int(mask.sum()),
                                       prior_peak_q95=q95(peaks[mask],p),post_peak_q95=q95(peaks[mask],post),
-                                      total_variation=float(np.sum(abs(post-p))/2),
+                                      total_variation=float(np.sum(p*abs(relative_update))/2),
                                       delta_logL=float(np.ptp(ll[mask]))))
     return ({"valid_baseline_bins":sum(len(i) for i,_,_ in runs),"network_bins":len(f),
              "counts":counts,"power_law_controls":controls,"benchmark":reference,

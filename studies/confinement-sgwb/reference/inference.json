@@ -1,0 +1,145 @@
+{
+  "valid_baseline_bins": 273711,
+  "network_bins": 50406,
+  "counts": {
+    "3": {
+      "total": 1296,
+      "positive_LTE": 407,
+      "retained": 27,
+      "fully_perturbative": 26
+    },
+    "4": {
+      "total": 1296,
+      "positive_LTE": 405,
+      "retained": 63,
+      "fully_perturbative": 61
+    }
+  },
+  "power_law_controls": [
+    {
+      "slope": 0,
+      "estimate": -9.040033483980687e-10,
+      "sigma": 4.60176917792892e-09,
+      "q95_linear": 8.44413457110192e-09,
+      "q95_log": 2.7844936363267e-09,
+      "published_linear": 8.6e-09,
+      "published_log": 2.8e-09
+    },
+    {
+      "slope": 0.6666666666666666,
+      "estimate": -1.0579523932438675e-09,
+      "sigma": 3.493600336037592e-09,
+      "q95_linear": 6.186995795178358e-09,
+      "q95_log": 2.0119146701719724e-09,
+      "published_linear": 6.3e-09,
+      "published_log": 2e-09
+    },
+    {
+      "slope": 3,
+      "estimate": -3.4358295778858445e-10,
+      "sigma": 5.79002661659062e-10,
+      "q95_linear": 9.315907211026026e-10,
+      "q95_log": 3.22299362400708e-10,
+      "published_linear": 1e-09,
+      "published_log": 3.2e-10
+    }
+  ],
+  "benchmark": {
+    "peak_Hz": 1.1345132445901878,
+    "peak_h2Omega": 8.291282018408712e-19,
+    "lvk_snr": 1.4989370349575387e-13,
+    "pta_snr": 1.9508730995391938e-31,
+    "lisa_snr": 1.3672338348116657e-11,
+    "logL_vs_noise": -2.664913817211426e-14,
+    "logL_with_CBC_vs_CBC": -3.966867035806981e-14,
+    "fig7_max_relative_difference": 0.06656052226493303
+  },
+  "lisa_flat_5sigma_h2Omega": 2.150191929426779e-13,
+  "reach_max": {
+    "lvk_snr": 5.491725277199387e-13,
+    "pta_snr": 2.259118560291577e-28,
+    "lisa_snr": 5.963743781702281e-08
+  },
+  "priors": [
+    {
+      "N": 3,
+      "prior": "linear",
+      "support": "full",
+      "points": 27,
+      "prior_peak_q95": 1.4141929855856554e-17,
+      "post_peak_q95": 1.4141929855856554e-17,
+      "total_variation": 1.0349998086306282e-14,
+      "delta_logL": 1.4570798429029774e-13
+    },
+    {
+      "N": 3,
+      "prior": "linear",
+      "support": "lower_eta",
+      "points": 22,
+      "prior_peak_q95": 1.8417880271711677e-17,
+      "post_peak_q95": 1.8417880271711677e-17,
+      "total_variation": 1.1799055829334658e-14,
+      "delta_logL": 1.4570798429029774e-13
+    },
+    {
+      "N": 3,
+      "prior": "log",
+      "support": "full",
+      "points": 27,
+      "prior_peak_q95": 1.4141929855856554e-17,
+      "post_peak_q95": 1.4141929855856554e-17,
+      "total_variation": 1.2511738195565475e-14,
+      "delta_logL": 1.4570798429029774e-13
+    },
+    {
+      "N": 3,
+      "prior": "log",
+      "support": "lower_eta",
+      "points": 22,
+      "prior_peak_q95": 1.4141929855856554e-17,
+      "post_peak_q95": 1.4141929855856554e-17,
+      "total_variation": 1.2749681274632343e-14,
+      "delta_logL": 1.4570798429029774e-13
+    },
+    {
+      "N": 4,
+      "prior": "linear",
+      "support": "full",
+      "points": 63,
+      "prior_peak_q95": 1.757995376667721e-18,
+      "post_peak_q95": 1.757995376667721e-18,
+      "total_variation": 4.807063304404136e-15,
+      "delta_logL": 6.973666305886579e-14
+    },
+    {
+      "N": 4,
+      "prior": "linear",
+      "support": "lower_eta",
+      "points": 40,
+      "prior_peak_q95": 3.2662525270498103e-18,
+      "post_peak_q95": 3.2662525270498103e-18,
+      "total_variation": 5.587117426625963e-15,
+      "delta_logL": 6.973666305886579e-14
+    },
+    {
+      "N": 4,
+      "prior": "log",
+      "support": "full",
+      "points": 63,
+      "prior_peak_q95": 2.043437382889368e-18,
+      "post_peak_q95": 2.043437382889368e-18,
+      "total_variation": 4.991417511340077e-15,
+      "delta_logL": 6.973666305886579e-14
+    },
+    {
+      "N": 4,
+      "prior": "log",
+      "support": "lower_eta",
+      "points": 40,
+      "prior_peak_q95": 3.2662525270498103e-18,
+      "post_peak_q95": 3.2662525270498103e-18,
+      "total_variation": 5.218921570210535e-15,
+      "delta_logL": 6.973666305886579e-14
+    }
+  ]
+}
