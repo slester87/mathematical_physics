@@ -10,3 +10,4 @@ summary = "Across 90 tested SU(3) and SU(4) spectra, the predicted signal varies
 "strain.json" = "reference/strain.json"
 "microcheck.json" = "reference/microcheck.json"
 "microcheck-linux.json" = "reference/microcheck-linux.json"
+"microcheck-unresolved.json" = "reference/microcheck-unresolved.json"
