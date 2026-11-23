@@ -1,0 +1,66 @@
+name: Confinement SGWB reproduction
+on:
+  pull_request:
+    paths:
+      - 'studies/confinement-sgwb/**'
+      - '.github/workflows/confinement-sgwb.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+defaults:
+  run:
+    working-directory: studies/confinement-sgwb
+jobs:
+  limits:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install numpy==1.26.4
+      - run: python inputs.py limits
+      - run: python inputs.py pta
+      - run: python study.py
+      - run: python validate.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: confinement-inference
+          path: studies/confinement-sgwb/results/
+  strain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r strain-requirements.txt
+      - run: python inputs.py strain
+      - run: python strain.py
+      - run: pip freeze | tee results/environment.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pygwb-offsource
+          path: studies/confinement-sgwb/results/
+
+  microscopic-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: miarobin/Eta-Prime-GWs
+          ref: 16785013ab2af982b053ddad9938c5a5283ea461
+          path: upstream-eta
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install numpy==2.3.5 scipy==1.15.3 cosmoTransitions==2.0.7
+      - run: python microcheck.py ../../upstream-eta
+      - uses: actions/upload-artifact@v4
+        with:
+          name: microscopic-check
+          path: studies/confinement-sgwb/results/microcheck.json
