@@ -251,11 +251,16 @@ class EventCatalogTests(unittest.TestCase):
             + table
             + '<INFO name="QUERY_STATUS" value="OVERFLOW"/></RESOURCE></VOTABLE>'
         ).encode()
-        fetch = MockReader([data])
+        # A second exposure shares its publisher DID with the page boundary row.
+        boundary = data.replace(b"new camera", b"second camera").replace(
+            b"OVERFLOW", b"OK"
+        )
+        fetch = MockReader([data, boundary])
         rows, partial = archives.obscore(
             self.gw, {"url": "https://test.invalid/sync", "pages": 1}, fetch
         )
         self.assertTrue(partial)
+        self.assertEqual(len({r["key"] for r in rows}), 2)
         query = parse_qs(urlparse(fetch.requests[0]).query)["QUERY"][0]
         self.assertIn("INTERSECTS(s_region", query)
         self.assertIn("t_max>=", query)

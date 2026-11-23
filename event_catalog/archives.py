@@ -414,11 +414,12 @@ def obscore(event, cfg, get):
         for ra, dec, radius in event["regions_deg"]
     ]
     base = (
-        f"SELECT TOP {cap + 1} obs_publisher_did,obs_id,obs_collection,instrument_name,target_name,"
+        "obs_publisher_did,obs_id,obs_collection,instrument_name,target_name,"
         "dataproduct_type,access_url,t_min,t_max,em_min,em_max FROM ivoa.obscore "
         f"WHERE t_min<={hi} AND t_max>={lo} AND (" + " OR ".join(shapes) + ")"
     )
     items, after = [], None
+    truncated_group = False
     for page in range(cfg.get("pages", 20)):
         where = (
             ""
@@ -426,33 +427,46 @@ def obscore(event, cfg, get):
             else " AND obs_publisher_did > '" + after.replace("'", "''") + "'"
         )
         batch, partial = tap(
-            cfg["url"], base + where + " ORDER BY obs_publisher_did", cap, get
+            cfg["url"],
+            f"SELECT TOP {cap + 1} " + base + where + " ORDER BY obs_publisher_did",
+            cap,
+            get,
         )
         items.extend(batch)
         if not partial or not batch or batch[-1]["obs_publisher_did"] == after:
             break
         after = batch[-1]["obs_publisher_did"]
-    rows = []
+        # Some archives publish several exposures under one project-level DID.
+        # Fetch the boundary group before advancing past it.
+        escaped = after.replace("'", "''")
+        boundary, overflow = tap(
+            cfg["url"],
+            "SELECT " + base + f" AND obs_publisher_did = '{escaped}'",
+            10000,
+            get,
+        )
+        items.extend(boundary)
+        truncated_group |= overflow
+    rows = {}
     for item in items:
         pub = item["obs_publisher_did"]
         if not pub:
             raise ValueError("archive row lacks a publisher dataset identifier")
-        rows.append(
-            record(
-                pub,
-                item["instrument_name"] or item["obs_collection"] or "unreported",
-                "archive",
-                "field overlap",
-                "product",
-                item["dataproduct_type"] or "observation",
-                cfg["url"],
-                item["target_name"] or item["obs_id"],
-                uri=item["access_url"],
-                level="locator",
-                metadata=item,
-            )
+        key = pub + "#" + digest(json.dumps(item, sort_keys=True).encode())
+        rows[key] = record(
+            key,
+            item["instrument_name"] or item["obs_collection"] or "unreported",
+            "archive",
+            "field overlap",
+            "product",
+            item["dataproduct_type"] or "observation",
+            cfg["url"],
+            item["target_name"] or item["obs_id"],
+            uri=item["access_url"],
+            level="locator",
+            metadata=item,
         )
-    return rows, partial
+    return list(rows.values()), partial or truncated_group
 
 
 def crossref(event, cfg, get):
