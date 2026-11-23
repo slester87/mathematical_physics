@@ -5,3 +5,4 @@
 - State assumptions, units, and conventions wherever they affect the result. Distinguish observations, model predictions, numerical evidence, conjectures, and proved statements.
 - For a reproduction, cite the paper and exact target, pin the upstream code or data version, and record a quantitative comparison. Document discrepancies and the numerical checks actually performed.
 - Keep large external datasets out of Git. Record the archive identifier, retrieval procedure, and checksum when available. Cite upstream work and check its license before copying code or redistributing data.
+- Keep the root README short and easy to navigate. Put study-specific headings, findings and run instructions in `studies/<name>/README.md`, and put tool-specific documentation beside the tool. Link from a directory index when that helps readers find the work.
