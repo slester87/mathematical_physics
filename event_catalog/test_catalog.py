@@ -22,7 +22,7 @@ class MockReader(archives.Reader):
         self.responses = iter(responses)
         self.requests = []
 
-    def get(self, uri):
+    def get(self, uri, form=None):
         self.requests.append(uri)
         payload = next(self.responses)
         if isinstance(payload, Exception):
@@ -253,7 +253,7 @@ class EventCatalogTests(unittest.TestCase):
         ).encode()
         fetch = MockReader([data])
         rows, partial = archives.obscore(
-            self.gw, {"url": "https://test.invalid/sync"}, fetch
+            self.gw, {"url": "https://test.invalid/sync", "pages": 1}, fetch
         )
         self.assertTrue(partial)
         query = parse_qs(urlparse(fetch.requests[0]).query)["QUERY"][0]
@@ -269,6 +269,33 @@ class EventCatalogTests(unittest.TestCase):
                     [b'<a><INFO name="QUERY_STATUS" value="ERROR">bad query</INFO></a>']
                 ),
             )
+
+    def test_arxiv_alias_and_partial(self):
+        data = b"""<feed><totalResults>2</totalResults><entry>
+        <id>http://arxiv.org/abs/1701.12345v3</id><title>Light curves</title>
+        <summary>Photometry of AT2017gfo.</summary></entry></feed>"""
+        rows, partial = archives.arxiv(self.gw, {"limit": 1}, MockReader([data]))
+        self.assertTrue(partial)
+        self.assertEqual([row["key"] for row in rows], ["1701.12345v3"])
+        self.assertEqual(rows[0]["association"], "candidate")
+
+    def test_mast_pagination_and_time_filter(self):
+        item = dict(
+            obsid=13,
+            t_min=57985,
+            t_max=57990,
+            instrument_name="imager",
+            target_name="field",
+        )
+
+        def page(rows):
+            return {"status": "COMPLETE", "data": rows, "paging": {"pagesFiltered": 2}}
+
+        fetch = MockReader([page([dict(item, t_min=59500, t_max=59510)]), page([item])])
+        rows, partial = archives.mast(self.gw, {"url": "https://test.invalid"}, fetch)
+        self.assertFalse(partial)
+        self.assertEqual([r["key"] for r in rows], ["13"])
+        self.assertEqual(rows[0]["association"], "candidate")
 
     def test_fermi_pagination_and_gwosc_identity(self):
         prefix = "fermi/data/gbm/triggers/2017/bn170817529/current/"

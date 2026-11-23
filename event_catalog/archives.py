@@ -6,6 +6,8 @@ import io
 import json
 import re
 import tarfile
+import time
+from urllib.error import HTTPError
 import urllib.parse as url
 import urllib.request as http
 import xml.etree.ElementTree as ET
@@ -20,11 +22,12 @@ DEFAULTS = {
     "fermi": {"adapter": "fermi"},
     "gcn": {"adapter": "gcn"},
     "mast": {
-        "adapter": "obscore",
-        "url": "https://mast.stsci.edu/vo-tap/api/v0.1/caom/sync",
+        "adapter": "mast",
+        "url": "https://mast.stsci.edu/api/v0/invoke",
     },
     "eso": {"adapter": "obscore", "url": "https://archive.eso.org/tap_obs/sync"},
     "literature": {"adapter": "crossref"},
+    "arxiv": {"adapter": "arxiv"},
 }
 GCN_ARCHIVE = "https://gcn.nasa.gov/circulars/archive.json.tar.gz"
 
@@ -37,15 +40,34 @@ class Reader:
     def __init__(self):
         self.receipts = []
 
-    def get(self, uri):
+    def get(self, uri, form=None):
+        body = url.urlencode(form).encode() if form else None
         req = http.Request(
-            uri, headers={"User-Agent": "MathematicalPhysicsEventCatalog/1.0"}
+            uri,
+            data=body,
+            headers={
+                "User-Agent": "MathematicalPhysicsEventCatalog/1.0 (https://github.com/slester87/mathematical_physics)"
+            },
         )
-        with http.urlopen(req, timeout=45) as resp:
-            data = resp.read(100_000_001)
+        entry = {"url": uri}
+        if form:
+            entry["form"] = form
+        self.receipts.append(entry)
+        for attempt in range(3):
+            try:
+                with http.urlopen(req, timeout=45) as resp:
+                    data = resp.read(100_000_001)
+                break
+            except HTTPError as exc:
+                if attempt == 2 or exc.code not in (429, 502, 503, 504):
+                    raise
+                delay = exc.headers.get("Retry-After", "")
+                if delay.isdigit() and int(delay) > 30:
+                    raise
+                time.sleep(int(delay) if delay.isdigit() else 2 ** (attempt + 1))
         if len(data) > 100_000_000:
             raise ValueError("metadata response exceeds 100 MB")
-        self.receipts.append({"url": uri, "response_sha256": digest(data)})
+        entry["response_sha256"] = digest(data)
         return data
 
     def json(self, uri):
@@ -309,26 +331,107 @@ def tap(endpoint, query, cap, get):
     )
 
 
-def obscore(event, cfg, get):
+def time_window(event):
     if not event["regions_deg"] or not event.get("utc"):
         raise Skip(
             "Needs UTC epoch and ICRS search cones; an unconverted sky map is insufficient"
         )
-    cap = cfg.get("limit", 500)
     epoch = utc(event["utc"]).timestamp() / 86400 + 40587
-    lo, hi = (epoch + d for d in event["search_days"])
+    return tuple(epoch + d for d in event["search_days"])
+
+
+def mast(event, cfg, get):
+    lo, hi = time_window(event)
+    endpoint = cfg["url"]
+    cap = cfg.get("limit", 500)
+    rows = {}
+    partial = False
+    for ra, dec, radius in event["regions_deg"]:
+        for page in range(1, cfg.get("pages", 20) + 1):
+            request = {
+                "service": "Mast.Caom.Cone",
+                "params": {"ra": ra, "dec": dec, "radius": radius},
+                "format": "json",
+                "pagesize": cap,
+                "page": page,
+            }
+            form = {"request": json.dumps(request)}
+            for attempt in range(8):
+                data = json.loads(get.get(endpoint, form))
+                if data.get("status") != "EXECUTING":
+                    break
+                time.sleep(2)
+            if data.get("status") != "COMPLETE":
+                raise ValueError(
+                    f"MAST {data.get('status')}: {data.get('msg', 'pending')}"
+                )
+            for row in data["data"]:
+                if row.get("t_min") is None or row.get("t_max") is None:
+                    continue
+                if row["t_min"] > hi or row["t_max"] < lo:
+                    continue
+                uid = str(row["obsid"])
+                r = record(
+                    uid,
+                    row.get("instrument_name")
+                    or row.get("obs_collection")
+                    or "unreported",
+                    "archive",
+                    "field overlap",
+                    "product",
+                    row.get("dataproduct_type") or "observation",
+                    "https://mast.stsci.edu/portal/Mashup/Clients/Mast/Portal.html?searchQuery="
+                    + url.quote(uid),
+                    row.get("target_name") or uid,
+                    level="locator",
+                    metadata={
+                        k: row.get(k)
+                        for k in (
+                            "obsid",
+                            "obs_id",
+                            "obs_collection",
+                            "t_min",
+                            "t_max",
+                            "filters",
+                            "s_region",
+                        )
+                    },
+                )
+                rows[uid] = r
+            paging = data.get("paging", {})
+            if page >= int(paging.get("pagesFiltered", paging.get("pages", 1))):
+                break
+        else:
+            partial = True
+    return list(rows.values()), partial
+
+
+def obscore(event, cfg, get):
+    lo, hi = time_window(event)
+    cap = cfg.get("limit", 500)
     shapes = [
         f"INTERSECTS(s_region,CIRCLE('ICRS',{ra},{dec},{radius}))=1"
         for ra, dec, radius in event["regions_deg"]
     ]
-    query = (
+    base = (
         f"SELECT TOP {cap + 1} obs_publisher_did,obs_id,obs_collection,instrument_name,target_name,"
         "dataproduct_type,access_url,t_min,t_max,em_min,em_max FROM ivoa.obscore "
-        f"WHERE t_min<={hi} AND t_max>={lo} AND ("
-        + " OR ".join(shapes)
-        + ") ORDER BY obs_publisher_did"
+        f"WHERE t_min<={hi} AND t_max>={lo} AND (" + " OR ".join(shapes) + ")"
     )
-    items, partial = tap(cfg["url"], query, cap, get)
+    items, after = [], None
+    for page in range(cfg.get("pages", 20)):
+        where = (
+            ""
+            if after is None
+            else " AND obs_publisher_did > '" + after.replace("'", "''") + "'"
+        )
+        batch, partial = tap(
+            cfg["url"], base + where + " ORDER BY obs_publisher_did", cap, get
+        )
+        items.extend(batch)
+        if not partial or not batch or batch[-1]["obs_publisher_did"] == after:
+            break
+        after = batch[-1]["obs_publisher_did"]
     rows = []
     for item in items:
         pub = item["obs_publisher_did"]
@@ -364,7 +467,14 @@ def crossref(event, cfg, get):
                 "select": "DOI,title,issued,URL",
             }
         )
-        result = get.json(uri)["message"]
+        if rows:
+            time.sleep(1)
+        try:
+            result = get.json(uri)["message"]
+        except HTTPError as exc:
+            if rows and exc.code == 429:
+                return list(rows.values()), True
+            raise
         partial |= result["total-results"] > cap
         for paper in result["items"]:
             title = " ".join(paper.get("title", []))
@@ -384,8 +494,52 @@ def crossref(event, cfg, get):
     return list(rows.values()), partial
 
 
+def arxiv(event, cfg, get):
+    labels = [event["id"], *event["aliases"]]
+    # Treat designations as phrases, excluding API query-language delimiters.
+    phrases = [re.sub(r"[^\w .+-]", " ", value).strip() for value in labels]
+    query = " OR ".join(f'all:"{term}"' for term in phrases if term)
+    cap = cfg.get("limit", 100)
+    uri = "https://export.arxiv.org/api/query?" + url.urlencode(
+        {"search_query": query, "start": 0, "max_results": cap}
+    )
+    feed = ET.fromstring(get.get(uri))
+    count = feed.findtext("{*}totalResults")
+    if count is None:
+        raise ValueError("arXiv response lacks a result count")
+    rows = []
+    pattern = alias_pattern(event)
+    for entry in feed.findall("{*}entry"):
+        title = " ".join(entry.findtext("{*}title", "").split())
+        abstract = entry.findtext("{*}summary", "")
+        paper = entry.findtext("{*}id", "").replace(
+            "http://arxiv.org/", "https://arxiv.org/"
+        )
+        if not paper.startswith("https://arxiv.org/abs/"):
+            raise ValueError("arXiv returned an invalid article identifier")
+        if not pattern.search(title + " " + abstract):
+            continue
+        rows.append(
+            record(
+                paper.split("/abs/", 1)[1],
+                "arXiv",
+                "literature",
+                "bibliography",
+                "publication",
+                "paper",
+                paper,
+                title,
+                metadata={
+                    "doi": entry.findtext("{*}doi"),
+                    "published": entry.findtext("{*}published"),
+                },
+            )
+        )
+    return rows, int(count) > cap
+
+
 def registry(get, cap=500):
-    query = """SELECT DISTINCT rr.interface.access_url,rr.interface.ivoid
+    query = """SELECT DISTINCT access_url,ivoid
     FROM rr.interface NATURAL JOIN rr.capability NATURAL JOIN rr.res_detail
     WHERE standard_id LIKE 'ivo://ivoa.net/std/tap%' AND intf_role='std'
     AND detail_xpath='/capability/dataModel/@ivo-id'
@@ -407,5 +561,16 @@ def registry(get, cap=500):
 
 ADAPTERS = {
     f.__name__: f
-    for f in (curated, measurement_csv, gwosc, gracedb, fermi, gcn, obscore, crossref)
+    for f in (
+        curated,
+        measurement_csv,
+        gwosc,
+        gracedb,
+        fermi,
+        gcn,
+        mast,
+        obscore,
+        crossref,
+        arxiv,
+    )
 }

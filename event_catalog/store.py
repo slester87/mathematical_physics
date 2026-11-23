@@ -63,6 +63,10 @@ def sync(conn, event, base, selected=None, reader_factory=Reader):
             isinstance(cfg["limit"], int) and 1 <= cfg["limit"] <= 10000
         ):
             raise ValueError(f"invalid row limit for {name}")
+        if "pages" in cfg and not (
+            isinstance(cfg["pages"], int) and 1 <= cfg["pages"] <= 1000
+        ):
+            raise ValueError(f"invalid page limit for {name}")
     with conn:
         conn.execute(
             "INSERT INTO events VALUES(?,?) ON CONFLICT(id) DO UPDATE SET manifest=excluded.manifest",
