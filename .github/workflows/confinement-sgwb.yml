@@ -1,0 +1,45 @@
+name: Confinement SGWB reproduction
+on:
+  pull_request:
+    paths:
+      - 'studies/confinement-sgwb/**'
+      - '.github/workflows/confinement-sgwb.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+defaults:
+  run:
+    working-directory: studies/confinement-sgwb
+jobs:
+  limits:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install numpy==1.26.4
+      - run: python inputs.py limits
+      - run: python inputs.py pta
+      - run: python study.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: confinement-inference
+          path: studies/confinement-sgwb/results/
+  strain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r strain-requirements.txt
+      - run: python inputs.py strain
+      - run: python strain.py
+      - run: pip freeze > results/environment.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pygwb-offsource
+          path: studies/confinement-sgwb/results/
