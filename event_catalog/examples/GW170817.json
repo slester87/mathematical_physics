@@ -1,0 +1,302 @@
+{
+  "schema": 1,
+  "id": "GW170817",
+  "aliases": [
+    "GRB 170817A",
+    "AT2017gfo",
+    "SSS17a",
+    "G298048"
+  ],
+  "origin": "observed",
+  "status": "confirmed",
+  "utc": "2017-08-17T12:41:04.43Z",
+  "epoch_reference": "https://gwosc.org/events/GW170817/",
+  "regions_deg": [
+    [
+      197.450354,
+      -23.381484,
+      0.03
+    ]
+  ],
+  "localization_note": "Search cone chosen around the Swope counterpart position, from Coulter et al.; this is not the original GW localization.",
+  "localization_reference": "https://doi.org/10.1126/science.aap9811",
+  "search_days": [
+    -1,
+    30
+  ],
+  "identifiers": {
+    "gwosc": "GW170817-v3",
+    "gbm": "bn170817529"
+  },
+  "host": "NGC 4993",
+  "sources": {},
+  "evidence": [
+    {
+      "key": "inspiral",
+      "sensor": "LIGO–Virgo",
+      "channel": "GW",
+      "subject": "inspiral",
+      "kind": "detection",
+      "resource": "gw_strain",
+      "reference": "https://gwosc.org/events/GW170817/",
+      "description": "Binary neutron-star inspiral observed by the GW detector network.",
+      "lineage": [
+        "GW170817/GW-strain"
+      ],
+      "association": "confirmed"
+    },
+    {
+      "key": "gbm-burst",
+      "sensor": "Fermi/GBM",
+      "channel": "gamma",
+      "subject": "prompt gamma-ray burst",
+      "kind": "detection",
+      "resource": "burst",
+      "reference": "https://gcn.nasa.gov/circulars/21520",
+      "description": "GBM burst trigger 170817529.",
+      "lineage": [
+        "bn170817529/GBM"
+      ],
+      "association": "confirmed"
+    },
+    {
+      "key": "acs-burst",
+      "sensor": "INTEGRAL/SPI-ACS",
+      "channel": "gamma",
+      "subject": "prompt gamma-ray burst",
+      "kind": "detection",
+      "resource": "burst",
+      "reference": "https://arxiv.org/abs/1710.05449",
+      "description": "Independent prompt gamma-ray signal in the anticoincidence shield.",
+      "lineage": [
+        "GW170817/SPI-ACS"
+      ],
+      "association": "confirmed"
+    },
+    {
+      "key": "gamma-delay",
+      "sensor": "LIGO–Virgo + Fermi/GBM",
+      "channel": "multimessenger",
+      "subject": "merger to gamma onset",
+      "kind": "measurement",
+      "resource": "arrival_delay",
+      "reference": "https://dcc.ligo.org/LIGO-P1700308/public",
+      "description": "Observed gamma-ray onset delay relative to the GW merger.",
+      "lineage": [
+        "bn170817529/GBM",
+        "GW170817/GW-strain"
+      ],
+      "association": "confirmed",
+      "value": 1.74,
+      "sigma": 0.05,
+      "unit": "s"
+    },
+    {
+      "key": "swope",
+      "sensor": "Swope",
+      "channel": "optical",
+      "subject": "optical transient AT2017gfo",
+      "kind": "detection",
+      "resource": "photometry",
+      "reference": "https://doi.org/10.1126/science.aap9811",
+      "description": "Discovery i-band magnitude.",
+      "lineage": [
+        "AT2017gfo/Swope"
+      ],
+      "association": "confirmed",
+      "value": 17.476,
+      "sigma": 0.018,
+      "unit": "mag",
+      "metadata": {
+        "filter": "i"
+      }
+    },
+    {
+      "key": "decam",
+      "sensor": "Blanco/DECam",
+      "channel": "optical",
+      "subject": "optical transient AT2017gfo",
+      "kind": "detection",
+      "resource": "photometry",
+      "reference": "https://cdsarc.cds.unistra.fr/viz-bin/cat/J/ApJ/848/L16",
+      "description": "The DECam search identified the optical counterpart.",
+      "lineage": [
+        "AT2017gfo/DECam"
+      ],
+      "association": "confirmed"
+    },
+    {
+      "key": "muse-redshift",
+      "sensor": "VLT/MUSE",
+      "channel": "optical",
+      "subject": "host NGC 4993",
+      "kind": "measurement",
+      "resource": "host_redshift",
+      "reference": "https://arxiv.org/abs/1710.05856",
+      "description": "Heliocentric systemic redshift measured from host spectroscopy.",
+      "lineage": [
+        "NGC4993/MUSE"
+      ],
+      "association": "confirmed",
+      "unit": "1",
+      "value": 0.009783,
+      "sigma": 2.3e-05,
+      "metadata": {
+        "frame": "heliocentric"
+      }
+    },
+    {
+      "key": "uv",
+      "sensor": "Swift/UVOT",
+      "channel": "UV",
+      "subject": "ultraviolet counterpart",
+      "kind": "detection",
+      "resource": "photometry",
+      "reference": "https://doi.org/10.1126/science.aap9580",
+      "description": "Ultraviolet emission from the early blue counterpart.",
+      "lineage": [
+        "AT2017gfo/UVOT"
+      ],
+      "association": "confirmed"
+    },
+    {
+      "key": "xray",
+      "sensor": "Chandra",
+      "channel": "X-ray",
+      "subject": "X-ray afterglow",
+      "kind": "detection",
+      "resource": "afterglow",
+      "reference": "https://doi.org/10.1038/nature24290",
+      "description": "X-ray counterpart detected in follow-up.",
+      "lineage": [
+        "GW170817/Chandra"
+      ],
+      "association": "confirmed"
+    },
+    {
+      "key": "radio",
+      "sensor": "VLA",
+      "channel": "radio",
+      "subject": "radio afterglow",
+      "kind": "detection",
+      "resource": "afterglow",
+      "reference": "https://doi.org/10.1126/science.aap9855",
+      "description": "VLA detected the radio counterpart.",
+      "lineage": [
+        "GW170817/VLA"
+      ],
+      "association": "confirmed"
+    },
+    {
+      "key": "lat-prompt",
+      "sensor": "Fermi/LAT",
+      "channel": "gamma",
+      "subject": "merger epoch",
+      "kind": "no_coverage",
+      "resource": "prompt_coverage",
+      "reference": "https://arxiv.org/abs/1710.05450",
+      "description": "LAT was entering the South Atlantic Anomaly at coalescence.",
+      "lineage": [
+        "GW170817/LAT"
+      ],
+      "association": "confirmed",
+      "time_s": [
+        0,
+        0
+      ]
+    },
+    {
+      "key": "lat-late",
+      "sensor": "Fermi/LAT",
+      "channel": "gamma",
+      "subject": "late-time emission",
+      "kind": "upper_limit",
+      "resource": "energy_flux",
+      "reference": "https://arxiv.org/abs/1710.05450",
+      "description": "Published 95% upper bound after LAT resumed observations.",
+      "lineage": [
+        "GW170817/LAT"
+      ],
+      "association": "confirmed",
+      "time_s": [
+        1153,
+        2027
+      ],
+      "band_MeV": [
+        100,
+        1000
+      ],
+      "value": 4.5e-10,
+      "unit": "erg cm^-2 s^-1",
+      "confidence": 0.95
+    },
+    {
+      "key": "tev",
+      "sensor": "H.E.S.S.",
+      "channel": "gamma",
+      "subject": "very-high-energy follow-up",
+      "kind": "non_detection",
+      "resource": "tev_search",
+      "reference": "https://arxiv.org/abs/1710.05862",
+      "description": "Follow-up search reported no significant gamma-ray counterpart.",
+      "lineage": [
+        "GW170817/HESS"
+      ],
+      "association": "confirmed"
+    },
+    {
+      "key": "nu-0",
+      "sensor": "ANTARES",
+      "channel": "neutrino",
+      "subject": "prompt directional search",
+      "kind": "non_detection",
+      "resource": "neutrino_search",
+      "reference": "https://arxiv.org/abs/1710.05839",
+      "description": "Published search found no neutrino directionally coincident with the source in this time window.",
+      "lineage": [
+        "GW170817/ANTARES"
+      ],
+      "association": "confirmed",
+      "time_s": [
+        -500,
+        500
+      ]
+    },
+    {
+      "key": "nu-1",
+      "sensor": "IceCube",
+      "channel": "neutrino",
+      "subject": "prompt directional search",
+      "kind": "non_detection",
+      "resource": "neutrino_search",
+      "reference": "https://arxiv.org/abs/1710.05839",
+      "description": "Published search found no neutrino directionally coincident with the source in this time window.",
+      "lineage": [
+        "GW170817/IceCube"
+      ],
+      "association": "confirmed",
+      "time_s": [
+        -500,
+        500
+      ]
+    },
+    {
+      "key": "nu-2",
+      "sensor": "Pierre Auger Observatory",
+      "channel": "neutrino",
+      "subject": "prompt directional search",
+      "kind": "non_detection",
+      "resource": "neutrino_search",
+      "reference": "https://arxiv.org/abs/1710.05839",
+      "description": "Published search found no neutrino directionally coincident with the source in this time window.",
+      "lineage": [
+        "GW170817/Pierre Auger Observatory"
+      ],
+      "association": "confirmed",
+      "time_s": [
+        -500,
+        500
+      ]
+    }
+  ]
+}

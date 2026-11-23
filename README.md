@@ -4,4 +4,4 @@ Computational and analytical studies of gauge theory, dark matter, and possible 
 
 [Read the research notebook on GitHub Pages](https://slester87.github.io/mathematical_physics/)
 
-[Studies and reproduction instructions](studies/README.md) · [Publishing a study](publication/README.md)
+[Event evidence catalog](event_catalog/README.md) · [Studies and reproduction instructions](studies/README.md) · [Publishing a study](publication/README.md)

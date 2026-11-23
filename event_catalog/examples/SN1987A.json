@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "id": "SN1987A",
+  "aliases": [
+    "SN 1987A"
+  ],
+  "origin": "observed",
+  "status": "confirmed",
+  "utc": "1987-02-23T07:35:00Z",
+  "epoch_reference": "https://doi.org/10.1103/PhysRevLett.58.1490",
+  "epoch_note": "Minute-level reference for search discovery; not an exact collapse time.",
+  "regions_deg": [],
+  "search_days": [
+    -1,
+    30
+  ],
+  "identifiers": {},
+  "sources": {},
+  "evidence": [
+    {
+      "key": "kamiokande",
+      "sensor": "Kamiokande-II",
+      "channel": "neutrino",
+      "subject": "supernova neutrino burst",
+      "kind": "detection",
+      "resource": "neutrino_burst",
+      "reference": "https://doi.org/10.1103/PhysRevLett.58.1490",
+      "description": "Published original selection of eleven neutrino events.",
+      "lineage": [
+        "SN1987A/KII"
+      ],
+      "association": "confirmed",
+      "value": 11,
+      "unit": "counts"
+    },
+    {
+      "key": "imb",
+      "sensor": "IMB",
+      "channel": "neutrino",
+      "subject": "supernova neutrino burst",
+      "kind": "detection",
+      "resource": "neutrino_burst",
+      "reference": "https://doi.org/10.1103/PhysRevLett.58.1494",
+      "description": "Eight events reported by IMB.",
+      "lineage": [
+        "SN1987A/IMB"
+      ],
+      "association": "confirmed",
+      "value": 8,
+      "unit": "counts"
+    }
+  ]
+}
