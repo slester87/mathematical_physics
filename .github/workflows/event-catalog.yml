@@ -1,0 +1,49 @@
+name: Event evidence catalog
+on:
+  pull_request:
+    paths:
+      - 'event_catalog/**'
+      - '.github/workflows/event-catalog.yml'
+  workflow_dispatch:
+    inputs:
+      manifest:
+        description: Event manifest path in this repository
+        default: event_catalog/examples/GW170817.json
+        required: true
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: python -m unittest -v event_catalog.test_catalog
+      - name: Build live event dossier
+        env:
+          MANIFEST: ${{ inputs.manifest || 'event_catalog/examples/GW170817.json' }}
+        run: |
+          mkdir -p results
+          rc=0
+          python -m event_catalog --db results/events.sqlite sync "$MANIFEST" > results/coverage.json || rc=$?
+          EVENT=$(python -c 'import json,sys;print(json.load(open(sys.argv[1]))["id"])' "$MANIFEST")
+          python -m event_catalog --db results/events.sqlite report "$EVENT" --format json --theory event_catalog/theories/prompt-glueball.json > results/dossier.json
+          python - <<'PYREPORT' > results/coverage.txt
+          import json
+          with open("results/dossier.json") as stream:
+              dossier = json.load(stream)
+          print("Archive | Status | Result")
+          print("--- | --- | ---")
+          for source, result in dossier["coverage"].items():
+              print(source, result["status"], result.get("note", ""), sep=" | ")
+          PYREPORT
+          cat results/coverage.txt
+          cat results/coverage.txt >> "$GITHUB_STEP_SUMMARY"
+          if [ "$rc" != 0 ]; then echo "::warning::Some archive queries failed. See per-source coverage."; fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: event-dossier
+          path: results/

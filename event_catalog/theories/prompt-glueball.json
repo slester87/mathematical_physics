@@ -1,0 +1,11 @@
+{
+  "name": "Prompt two-photon glueball emission near 1.7 MeV",
+  "requires": [
+    {"id":"GW-only distance and redshift samples", "level":"checked_file", "match":{"resource":"gw_distance_redshift_samples","kind":"product"}},
+    {"id":"Spectroscopic host redshift", "level":"summary", "match":{"resource":"host_redshift","kind":"measurement","unit":"1"}},
+    {"id":"Time-tagged photons", "same_sensor":"spectrometer", "level":"checked_file", "match":{"resource":"photon_events","kind":"product"}, "covers":{"time_s":[0,2],"band_MeV":[1.66,1.84]}},
+    {"id":"Response into the selected channels", "same_sensor":"spectrometer", "level":"checked_file", "match":{"resource":"window_response","kind":"product"}, "covers":{"time_s":[0,2],"band_MeV":[1.66,1.84]}},
+    {"id":"Background and burst continuum", "same_sensor":"spectrometer", "level":"checked_file", "match":{"resource":"background_and_continuum","kind":"product"}, "covers":{"time_s":[0,2],"band_MeV":[1.66,1.84]}},
+    {"id":"Good-time coverage", "same_sensor":"spectrometer", "level":"checked_file", "match":{"resource":"good_time","kind":"product"}, "covers":{"time_s":[0,2]}}
+  ]
+}
