@@ -8,7 +8,7 @@ from study import ROOT, YEAR, H_LVK, lisa, lvk, pta, spectrum
 
 
 def draw():
-    points = np.genfromtxt(ROOT/"reference/points.csv", delimiter=",", names=True)
+    points = np.genfromtxt(ROOT/"results/points.csv", delimiter=",", names=True)
     bench = json.loads((ROOT/"data/benchmark.json").read_text())
     f = np.geomspace(1e-9, 2000, 540)
     models = np.array([spectrum(f,p["N"],3,*[p[k] for k in ("Tn","Alpha","Beta","vwLTE","kappaLTE")])
@@ -58,4 +58,4 @@ def draw():
 
 
 if __name__ == "__main__":
-    renderSVG.drawToFile(draw(), str(ROOT/"reference/reach.svg"))
+    renderSVG.drawToFile(draw(), str(ROOT/"results/reach.svg"))

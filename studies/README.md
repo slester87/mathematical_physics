@@ -1,5 +1,7 @@
 # Studies
 
+[Prior robustness and detector reach for hidden-confinement spectra](confinement-sgwb/README.md)
+
 [Multimessenger limits on dark glueball emission](multimessenger-yang-mills/README.md)
 
 ## Planned spectrum reproduction

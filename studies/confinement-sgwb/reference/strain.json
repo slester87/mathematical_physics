@@ -1,0 +1,11 @@
+{
+  "source": "GWOSC GW150914 LOSC 4 kHz V2, H1 x L1",
+  "start_gps": 1126259447,
+  "end_gps_exclusive": 1126259459,
+  "nonoverlapping_segments": 12,
+  "welch_relative_L2_difference": 0.00042769399916427046,
+  "bins": 36,
+  "first_Hz": 30,
+  "last_Hz": 89,
+  "median_bin_standard_error": 0.00041342339704977316
+}

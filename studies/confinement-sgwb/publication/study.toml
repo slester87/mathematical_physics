@@ -1,0 +1,11 @@
+title = "Can detector data distinguish hidden-confinement spectra?"
+kind = "Stochastic background inference"
+date = 2026-11-22
+summary = "Across 90 tested SU(3) and SU(4) spectra, the predicted signal varies with the microscopic prior. Conditioning on LIGO–Virgo–KAGRA observations leaves the peak-amplitude percentiles unchanged."
+
+[downloads]
+"reach.svg" = "reference/reach.svg"
+"points.csv" = "reference/points.csv"
+"inference.json" = "reference/inference.json"
+"strain.json" = "reference/strain.json"
+"microcheck.json" = "reference/microcheck.json"
